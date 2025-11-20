@@ -1,26 +1,31 @@
 // app/api/contact/route.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { MongoClient } from "mongodb";
+import type { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_DB || "gtweb"; // default to gtweb to match connection string
-
-if (!uri) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable in .env.local"
-  );
-}
-
-// Cache the MongoClient across lambda invocations (Vercel, etc.)
 declare global {
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-let clientPromise: Promise<MongoClient>;
+const DB_NAME = process.env.MONGODB_DB || "gtweb";
 
-if (!global._mongoClientPromise) {
+async function getMongoClient(): Promise<MongoClient> {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    // Throw here so the error happens at request time (not build time).
+    throw new Error(
+      "Please define the MONGODB_URI environment variable (e.g. in .env.local or in Vercel project settings)."
+    );
+  }
+
+  if (global._mongoClientPromise) {
+    return global._mongoClientPromise;
+  }
+
+  // Lazy import so `mongodb` is not required during module evaluation.
+  const { MongoClient } = await import("mongodb");
+
   const client = new MongoClient(uri, {
     maxPoolSize: 10,
     minPoolSize: 2,
@@ -30,9 +35,11 @@ if (!global._mongoClientPromise) {
     retryWrites: true,
     retryReads: true,
   });
+
+  // store the promise so subsequent calls reuse the same connecting promise/client
   global._mongoClientPromise = client.connect();
+  return global._mongoClientPromise;
 }
-clientPromise = global._mongoClientPromise!;
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,8 +56,9 @@ export async function POST(req: NextRequest) {
 
     console.log("📝 Processing contact form submission:", { name, email });
 
-    const client = await clientPromise;
-    const db = client.db(dbName);
+    // Get connected client (this will throw a friendly error if MONGODB_URI missing)
+    const client = await getMongoClient();
+    const db = client.db(DB_NAME);
     const col = db.collection("contacts");
 
     const insertDoc = {
@@ -68,27 +76,42 @@ export async function POST(req: NextRequest) {
     const result = await col.insertOne(insertDoc);
     console.log("✅ Document inserted successfully with ID:", result.insertedId);
 
-    return NextResponse.json({ success: true, id: result.insertedId }, { status: 201 });
+    return NextResponse.json(
+      { success: true, id: result.insertedId },
+      { status: 201 }
+    );
   } catch (err: any) {
-    console.error("❌ API /api/contact error:", err.message);
-    console.error("Error code:", err.code);
-    console.error("Error type:", err.name);
-    
-    // Check if it's an SSL/connection error
-    if (err.message?.includes("SSL") || err.message?.includes("ssl")) {
+    console.error("❌ API /api/contact error:", err?.message || err);
+    console.error("Error code:", err?.code);
+    console.error("Error type:", err?.name);
+
+    // SSL/connection-specific message (keeps your helpful messaging)
+    if (err?.message?.toLowerCase()?.includes("ssl")) {
       console.error("🔐 SSL/TLS Connection Error detected");
       console.error("Full error:", err);
       return NextResponse.json(
-        { 
-          error: "MongoDB SSL connection error. Please check your MongoDB cluster whitelist and network connectivity.",
-          details: err.message 
+        {
+          error:
+            "MongoDB SSL connection error. Please check your MongoDB cluster whitelist, connection string, and network connectivity.",
+          details: err.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    // If env var missing, return 500 with clear guidance
+    if (err?.message?.includes("MONGODB_URI")) {
+      return NextResponse.json(
+        {
+          error:
+            "MONGODB_URI not configured. Add it to your environment (locally: .env.local, in Vercel: Project Settings → Environment Variables).",
         },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
-      { error: err.message || "Internal server error" },
+      { error: err?.message || "Internal server error" },
       { status: 500 }
     );
   }
