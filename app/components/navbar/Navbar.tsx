@@ -1,3 +1,4 @@
+// app/components/navbar/index.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -20,13 +21,15 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-4 z-50 w-full transition-all ${
-        isScrolled ? " shadow-sm" : "bg-transparent"
+      className={`fixed inset-x-0 top-4 z-50 transition-all pointer-events-auto ${
+        isScrolled ? "shadow-sm" : "bg-transparent"
       }`}
+      aria-label="Main navigation"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* LEFT: Logo — DO NOT wrap Logo with Link here because Logo already contains a Link */}
+
+          {/* LEFT: Logo */}
           <div className="flex items-center gap-2">
             <Logo />
           </div>
@@ -38,7 +41,7 @@ export default function Navbar() {
 
           {/* RIGHT: Contact Button */}
           <div className="hidden md:flex">
-            <Button label="Contact" />
+            <Button label="Contact" href="/contact" variant="primary" />
           </div>
 
           {/* MOBILE: Hamburger Button */}
@@ -46,6 +49,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle navigation menu"
             className="md:hidden p-2 rounded-md hover:bg-gray-100"
+            aria-expanded={menuOpen}
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -56,7 +60,7 @@ export default function Navbar() {
           <div className="md:hidden mt-2 rounded-lg bg-white shadow-md p-4">
             <NavTabs />
             <div className="mt-3">
-              <Button label="Contact" />
+              <Button label="Contact" href="/contact" variant="primary" />
             </div>
           </div>
         )}

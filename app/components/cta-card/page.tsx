@@ -1,39 +1,42 @@
 "use client";
-
 import React from "react";
-import Button from "../navbar/navbtn/button";
+import Button from "../navbar/navbtn/button"; 
 
-export default function CtaCard() {
+interface CTAcardProps {
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  onClick?: () => void;
+}
+
+export default function CTAcard({ title, subtitle, buttonText, onClick }: CTAcardProps) {
   return (
-    <section className="w-full flex justify-center px-4 py-16">
-      <div
-        className="
-          max-w-2xl w-full rounded-3xl p-10 
-          bg-white/10 backdrop-blur-xl 
-          border border-white/20 shadow-xl 
-          text-center
-        "
-      >
-        {/* Headline */}
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 leading-tight">
-          Ready to Stop Wishing and Start Growing?
-        </h2>
+    <div className="w-full flex justify-center px-4">
+      <div className="max-w-3xl w-full bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl p-6 sm:p-8 border border-zinc-100 dark:border-zinc-800">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
+              {title ?? "Ready to Grow Your Business?"}
+            </h3>
 
-        {/* Body */}
-        <p className="text-white/90 text-lg mb-8">
-          Let's discuss your unique business challenge. We'll craft a personalized 
-          digital strategy designed to maximize your visibility and revenue.
-        </p>
+            <p className="mt-2 text-zinc-600 dark:text-zinc-300">
+              {subtitle ??
+                "Launch your website, branding or full business platform with GT Web & Design."}
+            </p>
+          </div>
 
-        {/* CTA Button using your component */}
-        <div className="flex justify-center">
-          <Button
-            label="→ Schedule Your Free Strategy Session"
-            href="/contact"
-            variant="primary"
-          />
+          <div className="flex-shrink-0">
+            <div className="text-lg px-6 py-3">
+              <Button
+                onClick={onClick}
+                label={buttonText ?? "Book a Free Consultation"}
+              />
+            </div>
+          </div>
+
         </div>
       </div>
-    </section>
+    </div>
   );
 }

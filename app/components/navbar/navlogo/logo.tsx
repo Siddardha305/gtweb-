@@ -14,12 +14,12 @@ export default function Logo() {
       <Image
         src="/gt-logo.webp"
         alt="GT Website Logo"
-        width={40}
-        height={40}
+        width={50}
+        height={50}
         priority
       />
       <span className="text-lg font-semibold bg-gradient-to-r from-[#05d5fe] to-[#1e5de2] bg-clip-text text-transparent">
-        GT Web & Design
+         GTwebdevelopers
       </span>
     </Link>
   );
