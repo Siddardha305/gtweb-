@@ -12,7 +12,7 @@ const DB_NAME = process.env.MONGODB_DB || "gtweb";
 
 async function getMongoClient(): Promise<MongoClient> {
   const uri = process.env.MONGODB_URI;
-  if (!uri) {
+  if (!uri) { 
     // Throw here so the error happens at request time (not build time).
     throw new Error(
       "Please define the MONGODB_URI environment variable (e.g. in .env.local or in Vercel project settings)."

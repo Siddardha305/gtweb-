@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
         {/* Wrap the app with ErrorProvider so error boundary can notify layout & navbar */}
         <ErrorProvider>
           {/* NAVBAR stays in the root layout but can now hide itself via context */}
